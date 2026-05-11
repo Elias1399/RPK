@@ -95,6 +95,47 @@ int rook_legal(int player, int piece, Position origin, Position destination,
   }
 }
 
+int king_legal(Position origin, Position destination) {
+  if ((abs(origin.col - destination.col) == 1 &&
+       abs(origin.row - destination.row) <= 1) ||
+      ((abs(origin.row - destination.row) == 1 &&
+        abs(origin.col - destination.col) <= 1))) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int bishop_legal(Position origin, Position destination) {
+  if (abs(origin.col - destination.col) == abs(origin.row - destination.row)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int queen_legal(Position origin, Position destination) {
+  if (((origin.col == destination.col || origin.row == destination.row) &&
+       (origin.col != destination.col || origin.row != destination.row)) ||
+      (abs(origin.col - destination.col) ==
+       abs(origin.row - destination.row))) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
+int knight_legal(Position origin, Position destination) {
+  if ((abs(origin.col - destination.col) == 1 &&
+       abs(origin.row - destination.row) == 2) ||
+      (abs(origin.col - destination.col) == 2 &&
+       abs(origin.row - destination.row) == 1)) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 int player_move(int player, Position origin, Position destination) { return 0; }
 
 int main(void) {
