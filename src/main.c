@@ -6,6 +6,18 @@ typedef struct {
   int row;
 } Position;
 
+typedef struct {
+  char col;
+  int row;
+} PositionChar;
+
+Position pos_parse(PositionChar pos_char) {
+  Position pos_parsed;
+  int char_parsed = pos_char.col - 'a';
+  pos_parsed.row = pos_char.row - 1;
+  return pos_parsed;
+}
+
 int print_field(int field[8][8]) {
   for (int i = 0; i <= 7; i++) {
     printf("\n");
@@ -136,9 +148,20 @@ int knight_legal(Position origin, Position destination) {
   }
 }
 
+void turn_player(int turn) {
+  if (turn % 2 == 0) {
+    printf("White player, its your turn!\nMake you'r move: ");
+  } else {
+    printf("Black player, its your turn!\nMake you'r move: ");
+  }
+}
+
 int player_move(int player, Position origin, Position destination) { return 0; }
 
 int main(void) {
+  int turn = 0;
+  PositionChar pos_char;
+
   // clang-format off
   int field[8][8] = {
       {12, 13, 14, 15, 16, 14, 13, 12}, 
@@ -152,6 +175,12 @@ int main(void) {
   };
   // clang-format on
 
-  printf("White player, make your first move");
-  print_field(field);
+  while (1) {
+    print_field(field);
+    turn_player(turn);
+    scanf(" %c %i", &pos_char.col, &pos_char.row);
+    Position move = pos_parse(pos_char);
+
+    turn++;
+  }
 }
