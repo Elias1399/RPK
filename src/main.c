@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -28,7 +29,15 @@ int print_field(int field[8][8]) {
   return 0;
 }
 
-int detect_piece(Position origin, int field[8][8]) {
+bool in_field(PositionChar pos) {
+  if (pos.col >= 'a' && pos.col <= 'h' || pos.row >= 1 && pos.row <= 8) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+int get_piece(Position origin, int field[8][8]) {
   int piece = field[origin.col][origin.row];
   if (piece % 10 == 1) {
     return 1;
@@ -46,7 +55,7 @@ int detect_piece(Position origin, int field[8][8]) {
   return 0;
 }
 
-int detect_player(Position origin, int field[8][8]) {
+int get_player(Position origin, int field[8][8]) {
   int player = field[origin.col][origin.row];
   if (player < 10) {
     return 0;
@@ -68,7 +77,7 @@ int detect_destination(Position destination, int field[8][8]) {
   }
 }
 
-int pawn_legal(int player, int piece, Position origin, Position destination,
+int pawn_legal(int player, Position origin, Position destination,
                int field[8][8]) {
   if (player == 0) {
     if (origin.col == destination.col && origin.row == destination.row - 1) {
@@ -97,8 +106,7 @@ int pawn_legal(int player, int piece, Position origin, Position destination,
   return 2;
 }
 
-int rook_legal(int piece, Position origin, Position destination,
-               int field[8][8]) {
+int rook_legal(Position origin, Position destination, int field[8][8]) {
   if ((origin.col == destination.col || origin.row == destination.row) &&
       (origin.col != destination.col || origin.row != destination.row)) {
     return 1;
@@ -158,18 +166,25 @@ void turn_player(int turn) {
 
 Position get_pos(int field[8][8], int *current_piece) {
   PositionChar pos_char;
-  scanf(" %c %i", &pos_char.col, &pos_char.row);
+  int varyfied = 0;
+  do {
+    scanf(" %c %i", &pos_char.col, &pos_char.row);
+
+    printf("This is not a valid field, please enter the field you want to "
+           "move from: ");
+  } while (in_field(pos_char) == false);
+
   Position pos = pos_parse(pos_char);
-  if (detect_player(pos, field) == 1) {
-    *current_piece = detect_piece(pos, field);
+  if (get_player(pos, field) == 1) {
+    *current_piece = get_piece(pos, field);
     return pos;
   } else {
-    while (detect_player(pos, field) == 0) {
+    while (get_player(pos, field) == 0) {
       printf(
           "This is not a valid piece, please input the piece location again: ");
       scanf(" %c %i", &pos_char.col, &pos_char.row);
     }
-    *current_piece = detect_piece(pos, field);
+    *current_piece = get_piece(pos, field);
     return pos;
   }
 }
@@ -181,6 +196,19 @@ Position get_move() {
 
   Position move = pos_parse(pos_char);
   return move;
+}
+
+int do_move(Position origin, Position destination, int field[8][8]) {
+  field[origin.col][origin.row] = 0;
+  if (field[destination.col][destination.row] == 0) {
+    printf("You have beaten the an opponents piece, keep going!");
+  } else if (field[destination.col][destination.row] == 6 ||
+             field[destination.col][destination.row] == 16) {
+    printf("Congratulation, you have won the Game!");
+    return 1;
+  }
+  field[destination.col][destination.row] = get_piece(origin, field);
+  return 0;
 }
 
 int main(void) {
@@ -197,16 +225,35 @@ int main(void) {
       {0, 0, 0, 0, 0, 0, 0, 0},         
       {0, 0, 0, 0, 0, 0, 0, 0},
       {1, 1, 1, 1, 1, 1, 1, 1},         
-      {2, 3, 4, 6, 5, 4, 3, 2},
+      {2, 3, 4, 5, 6, 4, 3, 2},
   };
   // clang-format on
 
   while (1) {
+    int legal = 0;
+    Position move;
     print_field(field);
     turn_player(turn);
     Position pos = get_pos(field, &current_piece);
-    Position move = get_move();
+    do {
+      Position move = get_move();
+      switch (get_piece(pos, field)) {
+      case 1:
+        legal = pawn_legal(turn % 2, pos, move, field);
+      case 2:
+        legal = rook_legal(pos, move, field);
+      case 3:
+        legal = knight_legal(pos, move);
+      case 4:
+        legal = bishop_legal(pos, move);
+      case 5:
+        legal = queen_legal(pos, move);
+      case 6:
+        legal = king_legal(pos, move);
+      }
+    } while (legal == 0);
 
+    do_move(pos, move, field);
     turn++;
   }
 }
