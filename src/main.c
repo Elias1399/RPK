@@ -97,7 +97,7 @@ int pawn_legal(int player, int piece, Position origin, Position destination,
   return 2;
 }
 
-int rook_legal(int player, int piece, Position origin, Position destination,
+int rook_legal(int piece, Position origin, Position destination,
                int field[8][8]) {
   if ((origin.col == destination.col || origin.row == destination.row) &&
       (origin.col != destination.col || origin.row != destination.row)) {
@@ -156,10 +156,36 @@ void turn_player(int turn) {
   }
 }
 
-int player_move(int player, Position origin, Position destination) { return 0; }
+Position get_pos(int field[8][8], int *current_piece) {
+  PositionChar pos_char;
+  scanf(" %c %i", &pos_char.col, &pos_char.row);
+  Position pos = pos_parse(pos_char);
+  if (detect_player(pos, field) == 1) {
+    *current_piece = detect_piece(pos, field);
+    return pos;
+  } else {
+    while (detect_player(pos, field) == 0) {
+      printf(
+          "This is not a valid piece, please input the piece location again: ");
+      scanf(" %c %i", &pos_char.col, &pos_char.row);
+    }
+    *current_piece = detect_piece(pos, field);
+    return pos;
+  }
+}
+
+Position get_move() {
+  PositionChar pos_char;
+  printf("To what field do you want to move?: ");
+  scanf(" %c %i", &pos_char.col, &pos_char.row);
+
+  Position move = pos_parse(pos_char);
+  return move;
+}
 
 int main(void) {
   int turn = 0;
+  int current_piece;
   PositionChar pos_char;
 
   // clang-format off
@@ -178,8 +204,8 @@ int main(void) {
   while (1) {
     print_field(field);
     turn_player(turn);
-    scanf(" %c %i", &pos_char.col, &pos_char.row);
-    Position move = pos_parse(pos_char);
+    Position pos = get_pos(field, &current_piece);
+    Position move = get_move();
 
     turn++;
   }
