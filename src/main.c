@@ -37,8 +37,17 @@ bool in_field(PositionChar pos) {
   }
 }
 
-int get_piece(Position origin, int field[8][8]) {
+int get_piece(Position origin, int turn_player, int field[8][8]) {
   int piece = field[origin.col][origin.row];
+  if (turn_player == 0) {
+    if (piece >= 10) {
+      return 0;
+    }
+  } else if (turn_player == 1) {
+    if (piece < 10) {
+      return 0;
+    }
+  }
   if (piece % 10 == 1) {
     return 1;
   } else if (piece % 10 == 2) {
@@ -156,45 +165,48 @@ int knight_legal(Position origin, Position destination) {
   }
 }
 
-void turn_player(int turn) {
+int turn_player(int turn) {
   if (turn % 2 == 0) {
-    printf("White player, its your turn!\nMake you'r move: ");
+    return 0;
   } else {
-    printf("Black player, its your turn!\nMake you'r move: ");
+    return 1;
   }
 }
 
-Position get_pos(int field[8][8], int *current_piece) {
+Position get_pos(int field[8][8], int turn) {
   PositionChar pos_char;
+  Position pos;
   int varyfied = 0;
+  int player = turn_player(turn);
+  if (player == 0) {
+    printf("White player, this is your turn");
+  } else {
+    printf("Black player, this is your turn");
+  }
   do {
     scanf(" %c %i", &pos_char.col, &pos_char.row);
-
-    printf("This is not a valid field, please enter the field you want to "
-           "move from: ");
-  } while (in_field(pos_char) == false);
-
-  Position pos = pos_parse(pos_char);
-  if (get_player(pos, field) == 1) {
-    *current_piece = get_piece(pos, field);
-    return pos;
-  } else {
-    while (get_player(pos, field) == 0) {
-      printf(
-          "This is not a valid piece, please input the piece location again: ");
-      scanf(" %c %i", &pos_char.col, &pos_char.row);
+    if (in_field(pos_char) == false) {
+      printf("This is not a valid field, please enter the field you want to "
+             "move from: ");
+    } else {
+      pos = pos_parse(pos_char);
     }
-    *current_piece = get_piece(pos, field);
-    return pos;
-  }
+
+    if (get_piece(pos, player, field) == 0) {
+      printf("This is not one of your pieces");
+    }
+  } while (in_field(pos_char) == false || get_piece(pos, player, field) == 0);
+  return pos;
 }
 
-Position get_move() {
+Position get_move(int field[8][8], int turn) {
   PositionChar pos_char;
-  printf("To what field do you want to move?: ");
-  scanf(" %c %i", &pos_char.col, &pos_char.row);
-
-  Position move = pos_parse(pos_char);
+  Position move;
+  do {
+    printf("To what field do you want to move?: ");
+    scanf(" %c %i", &pos_char.col, &pos_char.row);
+    move = pos_parse(pos_char);
+  } while (in_field(pos_char) == false);
   return move;
 }
 
