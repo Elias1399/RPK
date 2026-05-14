@@ -15,22 +15,42 @@ typedef struct {
 Position pos_parse(PositionChar pos_char) {
   Position pos_parsed;
   int char_parsed = pos_char.col - 'a';
+  pos_parsed.col = char_parsed;
   pos_parsed.row = pos_char.row - 1;
+#ifdef DEBUG
+  printf("parsing: %c, %i --> %i, %i\n", pos_char.col, pos_char.row,
+         pos_parsed.col, pos_parsed.row);
+#endif
   return pos_parsed;
 }
 
-int print_field(int field[8][8]) {
-  for (int i = 0; i <= 7; i++) {
-    printf("\n");
+void print_field(int field[8][8]) {
+  printf("\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+         "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+         "\u2500\u2500\u2510\n");
+  for (int i = 7; i >= 0; i--) {
+    printf("\u2502");
     for (int j = 0; j <= 7; j++) {
       printf("%i", field[i][j]);
+      if (field[i][j] < 10) {
+        printf(" ");
+      }
+      printf("\u2502");
     };
+    if (i != 0) {
+      printf(
+          "\n\u2502\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+          "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+          "\u2500\u2500\u2502\n");
+    }
   };
-  return 0;
+  printf("\n\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+         "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+         "\u2500\u2500\u2518\n");
 }
 
 bool in_field(PositionChar pos) {
-  if (pos.col >= 'a' && pos.col <= 'h' || pos.row >= 1 && pos.row <= 8) {
+  if ((pos.col >= 'a' && pos.col <= 'h') || (pos.row >= 1 && pos.row <= 8)) {
     return true;
   } else {
     return false;
@@ -38,7 +58,7 @@ bool in_field(PositionChar pos) {
 }
 
 int get_piece(Position origin, int turn_player, int field[8][8]) {
-  int piece = field[origin.col][origin.row];
+  int piece = field[origin.row][origin.col];
   if (turn_player == 0) {
     if (piece >= 10) {
       return 0;
@@ -65,7 +85,7 @@ int get_piece(Position origin, int turn_player, int field[8][8]) {
 }
 
 int get_player(Position origin, int field[8][8]) {
-  int player = field[origin.col][origin.row];
+  int player = field[origin.row][origin.col];
   if (player < 10) {
     return 0;
   } else {
@@ -179,9 +199,9 @@ Position get_pos(int field[8][8], int turn) {
   int varyfied = 0;
   int player = turn_player(turn);
   if (player == 0) {
-    printf("White player, this is your turn");
+    printf("White player, this is your turn: ");
   } else {
-    printf("Black player, this is your turn");
+    printf("Black player, this is your turn: ");
   }
   do {
     scanf(" %c %i", &pos_char.col, &pos_char.row);
@@ -190,12 +210,13 @@ Position get_pos(int field[8][8], int turn) {
              "move from: ");
     } else {
       pos = pos_parse(pos_char);
+      if (get_piece(pos, player, field) == 0) {
+        printf("This is not one of your pieces");
+      } else {
+        varyfied = 1;
+      }
     }
-
-    if (get_piece(pos, player, field) == 0) {
-      printf("This is not one of your pieces");
-    }
-  } while (in_field(pos_char) == false || get_piece(pos, player, field) == 0);
+  } while (varyfied == 0);
   return pos;
 }
 
@@ -205,39 +226,52 @@ Position get_move(int field[8][8], int turn) {
   do {
     printf("To what field do you want to move?: ");
     scanf(" %c %i", &pos_char.col, &pos_char.row);
-    move = pos_parse(pos_char);
   } while (in_field(pos_char) == false);
+  move = pos_parse(pos_char);
   return move;
 }
 
-int do_move(Position origin, Position destination, int field[8][8]) {
-  field[origin.col][origin.row] = 0;
-  if (field[destination.col][destination.row] == 0) {
-    printf("You have beaten the an opponents piece, keep going!");
-  } else if (field[destination.col][destination.row] == 6 ||
-             field[destination.col][destination.row] == 16) {
-    printf("Congratulation, you have won the Game!");
-    return 1;
+void do_move(Position origin, Position destination, int turn_player,
+             int field[8][8]) {
+  int piece = field[origin.row][origin.col];
+  field[origin.row][origin.col] = 0;
+  if (turn_player == 0) {
+    if (field[destination.row][destination.col] == 16) {
+      printf("Congratulation white player, you have won the Game!\n");
+    } else if (field[destination.row][destination.col] > 10) {
+      printf("You have beaten the an opponents piece, keep going!\n");
+    } else {
+      printf("You moved your piece to a free field\n");
+    }
+    field[destination.row][destination.col] = piece;
   }
-  field[destination.col][destination.row] = get_piece(origin, field);
-  return 0;
+  if (turn_player == 1) {
+    if (field[destination.row][destination.col] == 6) {
+      printf("Congratulation black player, you have won the Game!\n");
+    } else if (field[destination.row][destination.col] < 10) {
+      printf("You have beaten the an opponents piece, keep going!\n");
+    } else {
+      printf("You moved your piece to a free field\n");
+    }
+    field[destination.row][destination.col] = piece;
+  }
 }
 
-int main(void) {
+int main() {
   int turn = 0;
   int current_piece;
   PositionChar pos_char;
 
   // clang-format off
   int field[8][8] = {
-      {12, 13, 14, 15, 16, 14, 13, 12}, 
-      {11, 11, 11, 11, 11, 11, 11, 11},
-      {0, 0, 0, 0, 0, 0, 0, 0},         
-      {0, 0, 0, 0, 0, 0, 0, 0},
-      {0, 0, 0, 0, 0, 0, 0, 0},         
-      {0, 0, 0, 0, 0, 0, 0, 0},
-      {1, 1, 1, 1, 1, 1, 1, 1},         
-      {2, 3, 4, 5, 6, 4, 3, 2},
+      [7] = {12, 13, 14, 15, 16, 14, 13, 12}, 
+      [6] = {11, 11, 11, 11, 11, 11, 11, 11},
+      [5] = {0, 0, 0, 0, 0, 0, 0, 0},         
+      [4] = {0, 0, 0, 0, 0, 0, 0, 0},
+      [3] = {0, 0, 0, 0, 0, 0, 0, 0},         
+      [2] = {0, 0, 0, 0, 0, 0, 0, 0},
+      [1] = {1, 1, 1, 1, 1, 1, 1, 1},         
+      [0] = {2, 3, 4, 5, 6, 4, 3, 2},
   };
   // clang-format on
 
@@ -245,11 +279,11 @@ int main(void) {
     int legal = 0;
     Position move;
     print_field(field);
-    turn_player(turn);
-    Position pos = get_pos(field, &current_piece);
+    int turn_p = turn_player(turn);
+    Position pos = get_pos(field, turn);
     do {
-      Position move = get_move();
-      switch (get_piece(pos, field)) {
+      Position move = get_move(field, turn_p);
+      switch (get_piece(pos, turn_p, field)) {
       case 1:
         legal = pawn_legal(turn % 2, pos, move, field);
       case 2:
@@ -263,9 +297,13 @@ int main(void) {
       case 6:
         legal = king_legal(pos, move);
       }
+      if (legal == 0) {
+        printf(
+            "This is not a legal move, please input your destination again: ");
+      }
     } while (legal == 0);
 
-    do_move(pos, move, field);
+    do_move(pos, move, turn_p, field);
     turn++;
   }
 }
