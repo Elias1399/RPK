@@ -93,6 +93,25 @@ int get_player(Position origin, int field[8][8]) {
   }
 }
 
+bool own_piece(int player, Position destination, int field[8][8]) {
+  if (field[destination.row][destination.col] == 0) {
+    return false;
+  }
+  if (player == 0) {
+    if (field[destination.row][destination.col] < 10) {
+      return true;
+    } else {
+      return false;
+    }
+  } else {
+    if (field[destination.row][destination.col] > 10) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+}
+
 int detect_destination(Position destination, int field[8][8]) {
   if (field[destination.row][destination.col] == 0) {
     // field is empty
@@ -420,10 +439,12 @@ int main() {
   while (1) {
     int legal = 0;
     Position move;
+    Position pos;
+    Position *p = &pos;
     print_field(field);
     int turn_p = turn_player(turn);
-    Position pos = get_pos(field, turn);
     do {
+      *p = get_pos(field, turn);
       Position move = get_move(field, turn_p);
       switch (get_piece(pos, turn_p, field)) {
       case 1:
@@ -445,9 +466,11 @@ int main() {
         legal = king_legal(pos, move);
         break;
       }
+      if (own_piece(turn_p, move, field) == true) {
+        legal = 0;
+      }
       if (legal == 0) {
-        printf(
-            "This is not a legal move, please input your destination again: ");
+        printf("This is not a legal move, please input a different move: ");
       }
     } while (legal == 0);
 
