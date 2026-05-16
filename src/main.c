@@ -223,7 +223,7 @@ int bishop_legal(Position origin, Position destination, int field[8][8]) {
     return 0;
   }
   if (origin.col < destination.col && origin.row < destination.row) {
-    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+    for (int i = 1; i < abs(origin.col - destination.col); i++) {
       counter.col++;
       counter.row++;
       if (detect_destination(counter, field) != 0) {
@@ -231,7 +231,7 @@ int bishop_legal(Position origin, Position destination, int field[8][8]) {
       }
     }
   } else if (origin.col < destination.col && origin.row > destination.row) {
-    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+    for (int i = 1; i < abs(origin.col - destination.col); i++) {
       counter.col++;
       counter.row--;
       if (detect_destination(counter, field) != 0) {
@@ -239,7 +239,7 @@ int bishop_legal(Position origin, Position destination, int field[8][8]) {
       }
     }
   } else if (origin.col > destination.col && origin.row < destination.row) {
-    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+    for (int i = 1; i < abs(origin.col - destination.col); i++) {
       counter.col--;
       counter.row++;
       if (detect_destination(counter, field) != 0) {
@@ -247,7 +247,7 @@ int bishop_legal(Position origin, Position destination, int field[8][8]) {
       }
     }
   } else if (origin.col > destination.col && origin.row > destination.row) {
-    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+    for (int i = 1; i < abs(origin.col - destination.col); i++) {
       counter.col--;
       counter.row--;
       if (detect_destination(counter, field) != 0) {
@@ -297,7 +297,7 @@ int queen_legal(Position origin, Position destination, int field[8][8]) {
       }
     }
     if (origin.col < destination.col && origin.row < destination.row) {
-      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      for (int i = 1; i < abs(origin.col - destination.col); i++) {
         counter.col++;
         counter.row++;
         if (detect_destination(counter, field) != 0) {
@@ -305,7 +305,7 @@ int queen_legal(Position origin, Position destination, int field[8][8]) {
         }
       }
     } else if (origin.col < destination.col && origin.row > destination.row) {
-      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      for (int i = 1; i < abs(origin.col - destination.col); i++) {
         counter.col++;
         counter.row--;
         if (detect_destination(counter, field) != 0) {
@@ -313,7 +313,7 @@ int queen_legal(Position origin, Position destination, int field[8][8]) {
         }
       }
     } else if (origin.col > destination.col && origin.row < destination.row) {
-      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      for (int i = 1; i < abs(origin.col - destination.col); i++) {
         counter.col--;
         counter.row++;
         if (detect_destination(counter, field) != 0) {
@@ -321,7 +321,7 @@ int queen_legal(Position origin, Position destination, int field[8][8]) {
         }
       }
     } else if (origin.col > destination.col && origin.row > destination.row) {
-      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      for (int i = 1; i < abs(origin.col - destination.col); i++) {
         counter.col--;
         counter.row--;
         if (detect_destination(counter, field) != 0) {
@@ -470,7 +470,7 @@ int main() {
         legal = 0;
       }
       if (legal == 0) {
-        printf("This is not a legal move, please input a different move: ");
+        printf("This is not a legal move, please input a different move: \n");
       }
     } while (legal == 0);
 
