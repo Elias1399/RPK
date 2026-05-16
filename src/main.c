@@ -109,7 +109,12 @@ int detect_destination(Position destination, int field[8][8]) {
 int pawn_legal(int player, Position origin, Position destination,
                int field[8][8]) {
   if (player == 0) {
-    if (origin.col == destination.col && origin.row == destination.row - 1) {
+    if (origin.col == destination.col && origin.row == destination.row - 1 &&
+        detect_destination(destination, field) == 0) {
+      return 1;
+    } else if (origin.col == destination.col &&
+               origin.row == destination.row - 2 && origin.row == 1 &&
+               detect_destination(destination, field) == 0) {
       return 1;
     } else if (abs(origin.col - destination.col) == 1 &&
                origin.row == destination.row - 1) {
@@ -120,7 +125,12 @@ int pawn_legal(int player, Position origin, Position destination,
       }
     }
   } else if (player == 1) {
-    if (origin.col == destination.col && origin.row == destination.row + 1) {
+    if (origin.col == destination.col && origin.row == destination.row + 1 &&
+        detect_destination(destination, field) == 0) {
+      return 1;
+    } else if (origin.col == destination.col &&
+               origin.row == destination.row - 2 && origin.row == 6 &&
+               detect_destination(destination, field) == 0) {
       return 1;
     } else if (abs(origin.col - destination.col) == 1 &&
                origin.row == destination.row + 1) {
@@ -136,8 +146,41 @@ int pawn_legal(int player, Position origin, Position destination,
 }
 
 int rook_legal(Position origin, Position destination, int field[8][8]) {
+  Position counter = origin;
   if ((origin.col == destination.col || origin.row == destination.row) &&
       (origin.col != destination.col || origin.row != destination.row)) {
+    if (origin.col != destination.col) {
+      for (int i = 1; i < abs(origin.col - destination.col); i++) {
+        if (origin.col - destination.col > 0) {
+          counter.col++;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+        if (origin.col - destination.col > 0) {
+          counter.col--;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+      }
+    }
+    if (origin.row != destination.row) {
+      for (int i = 1; i < abs(origin.row - destination.row); i++) {
+        if (origin.row - destination.row > 0) {
+          counter.row++;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+        if (origin.row - destination.row > 0) {
+          counter.row--;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+      }
+    }
     return 1;
   } else {
     return 0;
@@ -155,26 +198,125 @@ int king_legal(Position origin, Position destination) {
   }
 }
 
-int bishop_legal(Position origin, Position destination) {
-  if (abs(origin.col - destination.col) == abs(origin.row - destination.row)) {
-    return 1;
-  } else {
+int bishop_legal(Position origin, Position destination, int field[8][8]) {
+  Position counter = origin;
+  if (abs(origin.col - destination.col) != abs(origin.row - destination.row)) {
     return 0;
   }
+  if (origin.col < destination.col && origin.row < destination.row) {
+    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      counter.col++;
+      counter.row++;
+      if (detect_destination(counter, field) != 0) {
+        return 0;
+      }
+    }
+  } else if (origin.col < destination.col && origin.row > destination.row) {
+    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      counter.col++;
+      counter.row--;
+      if (detect_destination(counter, field) != 0) {
+        return 0;
+      }
+    }
+  } else if (origin.col > destination.col && origin.row < destination.row) {
+    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      counter.col--;
+      counter.row++;
+      if (detect_destination(counter, field) != 0) {
+        return 0;
+      }
+    }
+  } else if (origin.col > destination.col && origin.row > destination.row) {
+    for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+      counter.col--;
+      counter.row--;
+      if (detect_destination(counter, field) != 0) {
+        return 0;
+      }
+    }
+  }
+  return 1;
 }
 
-int queen_legal(Position origin, Position destination) {
+int queen_legal(Position origin, Position destination, int field[8][8]) {
+  Position counter;
   if (((origin.col == destination.col || origin.row == destination.row) &&
        (origin.col != destination.col || origin.row != destination.row)) ||
       (abs(origin.col - destination.col) ==
        abs(origin.row - destination.row))) {
+    if ((origin.col != destination.col) && (origin.row == destination.row)) {
+      for (int i = 1; i < abs(origin.col - destination.col); i++) {
+        if (origin.col - destination.col > 0) {
+          counter.col++;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+        if (origin.col - destination.col > 0) {
+          counter.col--;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+      }
+    }
+    if ((origin.row != destination.row) && (origin.col == destination.col)) {
+      for (int i = 1; i < abs(origin.row - destination.row); i++) {
+        if (origin.row - destination.row > 0) {
+          counter.row++;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+        if (origin.row - destination.row > 0) {
+          counter.row--;
+          if (detect_destination(counter, field) != 0) {
+            return 0;
+          }
+        }
+      }
+    }
+    if (origin.col < destination.col && origin.row < destination.row) {
+      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+        counter.col++;
+        counter.row++;
+        if (detect_destination(counter, field) != 0) {
+          return 0;
+        }
+      }
+    } else if (origin.col < destination.col && origin.row > destination.row) {
+      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+        counter.col++;
+        counter.row--;
+        if (detect_destination(counter, field) != 0) {
+          return 0;
+        }
+      }
+    } else if (origin.col > destination.col && origin.row < destination.row) {
+      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+        counter.col--;
+        counter.row++;
+        if (detect_destination(counter, field) != 0) {
+          return 0;
+        }
+      }
+    } else if (origin.col > destination.col && origin.row > destination.row) {
+      for (int i = 1; i <= abs(origin.col - destination.col); i++) {
+        counter.col--;
+        counter.row--;
+        if (detect_destination(counter, field) != 0) {
+          return 0;
+        }
+      }
+    }
     return 1;
   } else {
     return 0;
   }
 }
 
-int knight_legal(Position origin, Position destination) {
+int knight_legal(Position origin, Position destination, int field[8][8]) {
   if ((abs(origin.col - destination.col) == 1 &&
        abs(origin.row - destination.row) == 2) ||
       (abs(origin.col - destination.col) == 2 &&
@@ -286,16 +428,22 @@ int main() {
       switch (get_piece(pos, turn_p, field)) {
       case 1:
         legal = pawn_legal(turn % 2, pos, move, field);
+        break;
       case 2:
         legal = rook_legal(pos, move, field);
+        break;
       case 3:
-        legal = knight_legal(pos, move);
+        legal = knight_legal(pos, move, field);
+        break;
       case 4:
-        legal = bishop_legal(pos, move);
+        legal = bishop_legal(pos, move, field);
+        break;
       case 5:
-        legal = queen_legal(pos, move);
+        legal = queen_legal(pos, move, field);
+        break;
       case 6:
         legal = king_legal(pos, move);
+        break;
       }
       if (legal == 0) {
         printf(
