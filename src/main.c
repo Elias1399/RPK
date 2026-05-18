@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
   int col;
@@ -206,6 +207,34 @@ int rook_legal(Position origin, Position destination, int field[8][8]) {
   }
 }
 
+void castle(int player, Position origin, Position destination,
+            int castle_poss[2], int field[8][8]) {
+  if (player == 0) {
+    if (origin.row == 0 && (origin.col == 0 || origin.col == 7) &&
+        castle_poss[0] == 1) {
+      if (origin.col == 0) {
+        field[0][3] = field[0][5];
+      } else if (origin.col == 7) {
+        field[0][6] = field[0][5];
+      }
+      field[0][5] = 0;
+      castle_poss[0] = 0;
+    }
+  }
+  if (player == 1) {
+    if (origin.row == 1 && (origin.col == 0 || origin.col == 7) &&
+        castle_poss[1] == 1) {
+      if (origin.col == 0) {
+        field[7][3] = field[7][5];
+      } else if (origin.col == 7) {
+        field[7][6] = field[7][5];
+      }
+      field[7][5] = 0;
+      castle_poss[1] = 0;
+    }
+  }
+}
+
 int king_legal(Position origin, Position destination) {
   if ((abs(origin.col - destination.col) == 1 &&
        abs(origin.row - destination.row) <= 1) ||
@@ -259,7 +288,7 @@ int bishop_legal(Position origin, Position destination, int field[8][8]) {
 }
 
 int queen_legal(Position origin, Position destination, int field[8][8]) {
-  Position counter;
+  Position counter = origin;
   if (((origin.col == destination.col || origin.row == destination.row) &&
        (origin.col != destination.col || origin.row != destination.row)) ||
       (abs(origin.col - destination.col) ==
@@ -346,6 +375,39 @@ int knight_legal(Position origin, Position destination, int field[8][8]) {
   }
 }
 
+bool passant(int player, Position origin, Position destination,
+             int en_p[2][8]) {
+  if (player == 0) {
+    if (origin.row == 1 && destination.row == 3) {
+      en_p[0][origin.col] = 1;
+    } else if (origin.row == 3 && en_p[0][origin.col] == 1) {
+      en_p[0][origin.col] = 0;
+    }
+    if (origin.row == 4 && destination.col == abs(origin.col - 1)) {
+      if (en_p[1][destination.col] == 2) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  if (player == 1) {
+    if (origin.row == 6 && destination.row == 4) {
+      en_p[1][origin.col] = 1;
+    } else if (origin.row == 4 && en_p[1][origin.col] == 1) {
+      en_p[0][origin.col] = 0;
+    }
+    if (origin.row == 5 && destination.col == abs(origin.col - 1)) {
+      if (en_p[1][destination.col] == 2) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 int turn_player(int turn) {
   if (turn % 2 == 0) {
     return 0;
@@ -372,7 +434,7 @@ Position get_pos(int field[8][8], int turn) {
     } else {
       pos = pos_parse(pos_char);
       if (get_piece(pos, player, field) == 0) {
-        printf("This is not one of your pieces");
+        printf("This is not one of your pieces! Enter a different one:  \n");
       } else {
         varyfied = 1;
       }
@@ -399,6 +461,7 @@ void do_move(Position origin, Position destination, int turn_player,
   if (turn_player == 0) {
     if (field[destination.row][destination.col] == 16) {
       printf("Congratulation white player, you have won the Game!\n");
+      exit(0);
     } else if (field[destination.row][destination.col] > 10) {
       printf("You have beaten the an opponents piece, keep going!\n");
     } else {
@@ -409,6 +472,7 @@ void do_move(Position origin, Position destination, int turn_player,
   if (turn_player == 1) {
     if (field[destination.row][destination.col] == 6) {
       printf("Congratulation black player, you have won the Game!\n");
+      exit(0);
     } else if (field[destination.row][destination.col] < 10) {
       printf("You have beaten the an opponents piece, keep going!\n");
     } else {
@@ -436,6 +500,12 @@ int main() {
   };
   // clang-format on
 
+  int en_passant[2][8];
+  memset(en_passant, 0, sizeof(en_passant));
+
+  int castle_poss[2];
+  memset(castle_poss, 1, sizeof(castle_poss));
+
   while (1) {
     int legal = 0;
     Position move;
@@ -448,10 +518,16 @@ int main() {
       Position move = get_move(field, turn_p);
       switch (get_piece(pos, turn_p, field)) {
       case 1:
-        legal = pawn_legal(turn % 2, pos, move, field);
+        legal = pawn_legal(turn_p, pos, move, field);
+        if (passant(turn_p, pos, move, en_passant)) {
+          legal = 0;
+        }
         break;
       case 2:
         legal = rook_legal(pos, move, field);
+        if (legal == 1) {
+          castle(turn_p, pos, move, castle_poss, field);
+        }
         break;
       case 3:
         legal = knight_legal(pos, move, field);
