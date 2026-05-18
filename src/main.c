@@ -212,21 +212,21 @@ void castle(int player, Position origin, Position destination,
   if (player == 0) {
     if (origin.row == 0 && (origin.col == 0 || origin.col == 7) &&
         castle_poss[0] == 1) {
-      if (origin.col == 0) {
-        field[0][3] = field[0][5];
-      } else if (origin.col == 7) {
-        field[0][6] = field[0][5];
+      if (origin.col == 0 && destination.col == 3 && field[0][3] == 0) {
+        field[0][2] = field[0][4];
+      } else if (origin.col == 7 && destination.col == 5 && field[0][5] == 0) {
+        field[0][6] = field[0][4];
       }
-      field[0][5] = 0;
+      field[0][4] = 0;
       castle_poss[0] = 0;
     }
   }
   if (player == 1) {
     if (origin.row == 1 && (origin.col == 0 || origin.col == 7) &&
         castle_poss[1] == 1) {
-      if (origin.col == 0) {
-        field[7][3] = field[7][5];
-      } else if (origin.col == 7) {
+      if (origin.col == 0 && destination.col == 3 && field[7][3] == 0) {
+        field[7][2] = field[7][4];
+      } else if (origin.col == 7 && destination.col == 5 && field[7][5] == 0) {
         field[7][6] = field[7][5];
       }
       field[7][5] = 0;
@@ -527,6 +527,11 @@ int main() {
         legal = rook_legal(pos, move, field);
         if (legal == 1) {
           castle(turn_p, pos, move, castle_poss, field);
+          if (turn_p == 0) {
+            castle_poss[0] = 0;
+          } else if (turn_p == 1) {
+            castle_poss[1] = 0;
+          }
         }
         break;
       case 3:
@@ -540,6 +545,13 @@ int main() {
         break;
       case 6:
         legal = king_legal(pos, move);
+        if (legal == 1) {
+          if (turn_p == 0) {
+            castle_poss[0] = 0;
+          } else if (turn_p == 1) {
+            castle_poss[1] = 0;
+          }
+        }
         break;
       }
       if (own_piece(turn_p, move, field) == true) {
